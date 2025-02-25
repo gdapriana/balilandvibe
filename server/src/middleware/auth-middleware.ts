@@ -9,10 +9,10 @@ const authMiddleware = async (req: UserRequest, res: Response, next: NextFunctio
   const token = req.headers.authorization;
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET!, async (err: VerifyErrors | null, decoded: any) => {
-      if (err) return res.status(401).json({ errors: "Unauthorized" });
+      if (err) return res.status(401).json({ errors: "unauthorized" });
       const user = await db.user.findFirst({ where: { token } });
-      if (!user) return res.status(401).json({ errors: "Unauthorized" });
-      if (user.username !== decoded.username) return res.status(401).json({ errors: "Unauthorized" });
+      if (!user) return res.status(401).json({ errors: "unauthorized" });
+      if (user.username !== decoded.username) return res.status(401).json({ errors: "unauthorized" });
       req.username = decoded.username;
       req.role = decoded.role;
       next();
@@ -21,7 +21,7 @@ const authMiddleware = async (req: UserRequest, res: Response, next: NextFunctio
     res
       .status(401)
       .json({
-        errors: "Unauthorized",
+        errors: "unauthorized",
       })
       .end();
   }

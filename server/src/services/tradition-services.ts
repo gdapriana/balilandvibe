@@ -30,8 +30,24 @@ class TraditionServices {
             slug: true,
           },
         },
-        images: true,
-        sources: true,
+        images: {
+          select: {
+            id: true,
+            url: true,
+          },
+        },
+        sources: {
+          select: {
+            id: true,
+            citationNum: true,
+            name: true,
+            year: true,
+            publisher: true,
+            doi: true,
+            weblink: true,
+            accessed: true,
+          },
+        },
       },
     });
     if (!item) throw new ResponseError(404, "not found");

@@ -32,16 +32,29 @@ class DestinationServices {
         },
         category: {
           select: {
+            id: true,
             name: true,
             slug: true,
           },
         },
         images: {
           select: {
+            id: true,
             url: true,
           },
         },
-        sources: true,
+        sources: {
+          select: {
+            id: true,
+            citationNum: true,
+            name: true,
+            year: true,
+            publisher: true,
+            doi: true,
+            weblink: true,
+            accessed: true,
+          },
+        },
       },
     });
     if (!item) throw new ResponseError(404, "not found");
@@ -118,12 +131,14 @@ class DestinationServices {
         description: true,
         district: {
           select: {
+            id: true,
             name: true,
             slug: true,
           },
         },
         category: {
           select: {
+            id: true,
             name: true,
             slug: true,
           },
@@ -146,7 +161,7 @@ class DestinationServices {
       if (itemAlreadyExist) throw new ResponseError(400, "already exists");
       return db.destination.update({ where: { slug }, data: { ...bodyCheck, slug: newSlug } });
     }
-    return db.destination.update({ where: { slug }, data: bodyCheck });
+    return db.destination.update({ where: { slug }, data: bodyCheck, select: { name: true } });
   }
   static async updateView(slug: string) {
     const isItemExist = await db.destination.findUnique({ where: { slug } });
