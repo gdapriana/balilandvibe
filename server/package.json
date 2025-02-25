@@ -8,7 +8,7 @@
     "build": "tsc",
     "serve": "node dist/app.js",
     "test": "jest --coverage",
-    "start": "node app.js"
+    "start": "node dist/app.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
