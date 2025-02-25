@@ -4,10 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon src/app.ts",
     "build": "tsc",
-    "serve": "node dist/index.js",
-    "test": "jest --coverage"
+    "serve": "node dist/app.js",
+    "test": "jest --coverage",
+    "start": "node app.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
