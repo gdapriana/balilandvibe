@@ -181,6 +181,9 @@ model Media {
   id                 String        @id @default(auto()) @map("_id") @db.ObjectId
   created_at         DateTime      @default(now())
   updated_at         DateTime      @updatedAt
+  name               String
+  public_id          String
+  secure_url         String
   slug               String        @unique
   destinations_cover Destination[]
   cultures_cover     Culture[]
