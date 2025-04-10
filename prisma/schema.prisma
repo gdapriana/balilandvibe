@@ -19,8 +19,17 @@ model User {
   // Optional for WebAuthn support
   Authenticator Authenticator[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at            DateTime      @default(now())
+  updated_at            DateTime      @updatedAt
+  comments              Comment[]
+  saved_destinations_id String[]      @db.ObjectId
+  liked_destinations_id String[]      @db.ObjectId
+  saved_cultures_id     String[]      @db.ObjectId
+  liked_cultures_id     String[]      @db.ObjectId
+  liked_destinations    Destination[] @relation(fields: [liked_destinations_id], references: [id], name: "liked destinations")
+  saved_destinations    Destination[] @relation(fields: [saved_destinations_id], references: [id], name: "saved destinations")
+  liked_cultures        Culture[]     @relation(fields: [liked_cultures_id], references: [id], name: "liked cultures")
+  saved_cultures        Culture[]     @relation(fields: [saved_cultures_id], references: [id], name: "saved cultures")
 }
 
 model Account {
@@ -79,6 +88,105 @@ model Authenticator {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, credentialID])
+}
+
+model Destination {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  name           String
+  description    String
+  address        String?
+  slug           String    @unique
+  map_url        String?
+  cover_slug     String?
+  district_slug  String
+  category_slug  String
+  cover          Media?    @relation(fields: [cover_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  district       District  @relation(fields: [district_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  category       Category  @relation(fields: [category_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  comments       Comment[]
+  users_saved_id String[]  @db.ObjectId
+  users_liked_id String[]  @db.ObjectId
+  users_saved    User[]    @relation(fields: [users_saved_id], references: [id], name: "saved destinations")
+  users_liked    User[]    @relation(fields: [users_liked_id], references: [id], name: "liked destinations")
+
+  @@map("destinations")
+}
+
+model Culture {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  name           String
+  slug           String    @unique
+  description    String
+  body           String
+  district_slug  String?
+  cover_slug     String?
+  district       District? @relation(fields: [district_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  cover          Media?    @relation(fields: [cover_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  comments       Comment[]
+  users_saved_id String[]  @db.ObjectId
+  users_liked_id String[]  @db.ObjectId
+  users_saved    User[]    @relation(fields: [users_saved_id], references: [id], name: "saved cultures")
+  users_liked    User[]    @relation(fields: [users_liked_id], references: [id], name: "liked cultures")
+
+  @@map("cultures")
+}
+
+model District {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  name         String
+  slug         String        @unique
+  description  String
+  cover_slug   String?
+  cover        Media?        @relation(fields: [cover_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  destinations Destination[]
+  cultures     Culture[]
+
+  @@map("districts")
+}
+
+model Category {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  name         String
+  slug         String        @unique
+  description  String?
+  destinations Destination[]
+
+  @@map("categories")
+}
+
+model Comment {
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+  slug             String       @unique
+  user_email       String
+  user             User         @relation(fields: [user_email], references: [email], onDelete: Cascade, onUpdate: Cascade)
+  destination      Destination? @relation(fields: [destination_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  destination_slug String?
+  culture          Culture?     @relation(fields: [culture_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
+  culture_slug     String?
+
+  @@map("comments")
+}
+
+model Media {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  created_at         DateTime      @default(now())
+  updated_at         DateTime      @updatedAt
+  slug               String        @unique
+  destinations_cover Destination[]
+  cultures_cover     Culture[]
+  districts_cover    District[]
+
+  @@map("media")
 }
 
 enum ROLE {
