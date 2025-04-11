@@ -10,3 +10,5 @@ export const slugifyParams = {
   trim: true,
   strict: true,
 };
+
+export type Params = Promise<{ slug: string }>;
