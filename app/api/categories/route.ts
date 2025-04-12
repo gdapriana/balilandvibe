@@ -1,6 +1,5 @@
-import cloudinary from "@/lib/cloudinary";
 import { prisma } from "@/lib/prisma";
-import { GET_MEDIA_QUERIES, POST_MEDIA } from "@/lib/schema";
+import { GET_CATEGORY_QUERIES, POST_CATEGORY } from "@/lib/schema";
 import { slugifyParams } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import slugify from "slugify";
@@ -11,10 +10,13 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const name = searchParams.get("name") ?? undefined;
     const order = searchParams.get("order") ?? undefined;
-    const queries = GET_MEDIA_QUERIES.parse({ name, order });
-    const items = await prisma.media.findMany({
+    const queries = GET_CATEGORY_QUERIES.parse({ name, order });
+    const items = await prisma.category.findMany({
       where: {
-        name: queries.name,
+        name: { contains: queries.name, mode: "insensitive" },
+      },
+      include: {
+        _count: true,
       },
       orderBy: {
         name: queries.order === "name" ? "asc" : undefined,
@@ -37,18 +39,17 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const checkBody = POST_MEDIA.parse(body);
+    const checkBody = POST_CATEGORY.parse(body);
     const newSlug: string = slugify(checkBody.name, slugifyParams);
-    const checkSlug = await prisma.media.findUnique({
+    const checkSlug = await prisma.category.findUnique({
       where: {
         slug: newSlug,
       },
     });
     if (checkSlug) {
-      cloudinary.uploader.destroy(checkBody.public_id);
       return NextResponse.json({ errors: "already exist" }, { status: 409 });
     }
-    const item = await prisma.media.create({
+    const item = await prisma.category.create({
       data: { ...checkBody, slug: newSlug },
       select: {
         name: true,
