@@ -25,3 +25,20 @@ export const PATCH_CATEGORY = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional().nullable(),
 });
+
+export const GET_DISTRICT_QUERIES = z.object({
+  name: z.string().optional(),
+  order: z.enum(["name", "created"]).optional(),
+});
+
+export const POST_DISTRICT = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  cover_slug: z.string().optional().nullable(),
+});
+
+export const PATCH_DISTRICT = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  cover_slug: z.string().optional().nullable(),
+});

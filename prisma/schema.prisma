@@ -141,7 +141,7 @@ model District {
   updated_at   DateTime      @updatedAt
   name         String
   slug         String        @unique
-  description  String
+  description  String?
   cover_slug   String?
   cover        Media?        @relation(fields: [cover_slug], references: [slug], onDelete: Cascade, onUpdate: Cascade)
   destinations Destination[]
