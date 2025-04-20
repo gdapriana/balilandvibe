@@ -9,9 +9,9 @@ import { z } from "zod";
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const name = searchParams.get("name") ?? undefined;
-    const order = searchParams.get("order") ?? undefined;
-    const queries = GET_MEDIA_QUERIES.parse({ name, order });
+    const nameQ = searchParams.get("name") ?? undefined;
+    const orderQ = searchParams.get("order") ?? undefined;
+    const queries = GET_MEDIA_QUERIES.parse({ name: nameQ, order: orderQ });
     const items = await prisma.media.findMany({
       where: {
         name: queries.name,

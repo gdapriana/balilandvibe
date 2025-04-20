@@ -1,5 +1,37 @@
 import { z } from "zod";
 
+export const GET_DESTINATION_QUERIES = z.object({
+  name: z.string().optional(),
+  page: z
+    .string()
+    .refine((val) => /^\d+$/.test(val), {
+      message: "page number must be number",
+    })
+    .optional(),
+  address: z.string().optional(),
+  order: z.enum(["name", "created", "liked", "favorited"]).optional(),
+});
+
+export const POST_DESTINATION = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  address: z.string().optional().nullable(),
+  map_url: z.string().url().optional().nullable(),
+  cover_slug: z.string().optional().nullable(),
+  district_slug: z.string().min(1),
+  category_slug: z.string().min(1),
+});
+
+export const PATCH_DESTINATION = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  address: z.string().optional().nullable(),
+  map_url: z.string().url().optional().nullable(),
+  cover_slug: z.string().optional().nullable(),
+  district_slug: z.string().min(1).optional(),
+  category_slug: z.string().min(1).optional(),
+});
+
 export const GET_MEDIA_QUERIES = z.object({
   name: z.string().optional(),
   order: z.enum(["name", "created"]).optional(),
