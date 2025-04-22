@@ -10,8 +10,6 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const nameQ = searchParams.get("name") ?? undefined;
     const addressQ = searchParams.get("address") ?? undefined;
-    const limitQ = searchParams.get("limit") ?? undefined;
-    const takeQ = searchParams.get("take") ?? undefined;
     const pageQ = searchParams.get("page") ?? undefined;
     const orderQ = searchParams.get("order") ?? undefined;
     const queries = GET_DESTINATION_QUERIES.parse({
