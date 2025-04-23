@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
         slug,
       },
       data: {
-        users_saved: {
+        users_liked: {
           connect: {
             email: session.user?.email!,
           },
@@ -63,7 +63,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
         slug,
       },
       data: {
-        users_saved: {
+        users_liked: {
           disconnect: {
             email: session.user?.email!,
           },
