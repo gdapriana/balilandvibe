@@ -5,66 +5,117 @@ import { NextRequest, NextResponse } from "next/server";
 import slugify from "slugify";
 import { z } from "zod";
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest, res: NextResponse) {
   try {
-    const searchParams = req.nextUrl.searchParams;
-    const nameQ = searchParams.get("name") ?? undefined;
-    const addressQ = searchParams.get("address") ?? undefined;
-    const pageQ = searchParams.get("page") ?? undefined;
-    const orderQ = searchParams.get("order") ?? undefined;
-    const queries = GET_DESTINATION_QUERIES.parse({
-      name: nameQ,
-      address: addressQ,
-      page: pageQ,
-      order: orderQ,
+    const { searchParams } = req.nextUrl;
+
+    const name = searchParams.get("name");
+    const description = searchParams.get("description");
+    const district = searchParams.get("district");
+    const address = searchParams.get("address");
+    const category = searchParams.get("category");
+    const order = searchParams.get("order") || "created";
+    let page = searchParams.get("page") || "1";
+    let limit = searchParams.get("limit") || "10";
+
+    const checkQueries = GET_DESTINATION_QUERIES.parse({
+      name,
+      description,
+      page,
+      limit,
+      district,
+      category,
+      order,
+      address,
     });
 
-    const allItems = await prisma.destination.count();
+    const parsedPage = parseInt(checkQueries.page || "1");
+    const parsedLimit = parseInt(checkQueries.limit || "10");
+    const skip = (parsedPage - 1) * parsedLimit;
 
-    const limitDefault = 10;
-    const pageDefault = parseInt(queries.page ?? "1");
-    const skip = (pageDefault - 1) * limitDefault;
-    const totalPage = Math.ceil(allItems / limitDefault);
+    const filters: any = {};
+    if (checkQueries.name)
+      filters.name = { contains: checkQueries.name, mode: "insensitive" };
+    if (checkQueries.description)
+      filters.description = {
+        contains: checkQueries.description,
+        mode: "insensitive",
+      };
+    if (checkQueries.address)
+      filters.address = {
+        contains: checkQueries.address,
+        mode: "insensitive",
+      };
+    if (checkQueries.district) filters.district_slug = checkQueries.district;
+    if (checkQueries.category) filters.category_slug = checkQueries.category;
 
-    const items = await prisma.destination.findMany({
-      where: {
-        AND: [
-          { name: { contains: queries.name, mode: "insensitive" } },
-          { address: { contains: queries.address, mode: "insensitive" } },
-        ],
-      },
-      skip,
-      take: limitDefault,
-      select: {
-        _count: true,
-        name: true,
-        slug: true,
-        address: true,
-        category: {
-          select: {
-            name: true,
-            slug: true,
+    // ORDER BY
+    let orderBy: any;
+    if (checkQueries.order === "name") {
+      orderBy = { name: "asc" };
+    } else if (checkQueries.order === "created") {
+      orderBy = { created_at: "desc" };
+    }
+
+    // Special case: mostLiked or mostSaved
+    if (checkQueries.order === "liked" || checkQueries.order === "saved") {
+      const allDestinations = await prisma.destination.findMany({
+        where: filters,
+        include: {
+          district: { select: { slug: true, name: true } },
+          category: { select: { slug: true, name: true } },
+          _count: {
+            select: {
+              users_liked: true,
+              users_saved: true,
+            },
           },
         },
-        cover: {
-          select: {
-            secure_url: true,
-          },
+      });
+
+      const sorted = allDestinations
+        .sort((a, b) => {
+          const aCount =
+            order === "mostLiked" ? a._count.users_liked : a._count.users_saved;
+          const bCount =
+            order === "mostLiked" ? b._count.users_liked : b._count.users_saved;
+          return bCount - aCount;
+        })
+        .slice(skip, skip + parsedLimit);
+
+      return NextResponse.json({
+        data: sorted,
+        page,
+        limit,
+        total: allDestinations.length,
+        totalPages: Math.ceil(allDestinations.length / parsedLimit),
+        hasMore: skip + parsedLimit < allDestinations.length,
+      });
+    }
+
+    // Normal orderBy
+    const [destinations, total] = await Promise.all([
+      prisma.destination.findMany({
+        where: filters,
+        skip,
+        take: parsedLimit,
+        orderBy,
+        include: {
+          district: { select: { slug: true, name: true } },
+          category: { select: { slug: true, name: true } },
         },
-        district: {
-          select: {
-            name: true,
-            slug: true,
-          },
-        },
-        description: true,
-      },
+      }),
+      prisma.destination.count({ where: filters }),
+    ]);
+
+    return NextResponse.json({
+      data: destinations,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / parsedLimit),
+      hasMore: skip + parsedLimit < total,
     });
-
-    return NextResponse.json(
-      { data: items, total_items: allItems, total_page: totalPage },
-      { status: 200 }
-    );
   } catch (e) {
     console.error(e);
     if (e instanceof z.ZodError) {

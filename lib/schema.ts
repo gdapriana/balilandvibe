@@ -1,15 +1,26 @@
 import { z } from "zod";
 
 export const GET_DESTINATION_QUERIES = z.object({
-  name: z.string().optional(),
+  name: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
   page: z
     .string()
     .refine((val) => /^\d+$/.test(val), {
       message: "page number must be number",
     })
-    .optional(),
-  address: z.string().optional(),
-  order: z.enum(["name", "created", "liked", "favorited"]).optional(),
+    .optional()
+    .nullable(),
+  limit: z
+    .string()
+    .refine((val) => /^\d+$/.test(val), {
+      message: "page number must be number",
+    })
+    .optional()
+    .nullable(),
+  address: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  order: z.enum(["name", "created", "liked", "saved"]).optional().nullable(),
 });
 
 export const POST_DESTINATION = z.object({
@@ -73,4 +84,8 @@ export const PATCH_DISTRICT = z.object({
   name: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
   cover_slug: z.string().optional().nullable(),
+});
+
+export const POST_COMMENT = z.object({
+  body: z.string().min(3).max(200),
 });
